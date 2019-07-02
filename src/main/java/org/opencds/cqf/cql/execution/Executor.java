@@ -1,8 +1,23 @@
 package org.opencds.cqf.cql.execution;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.api.EncodingEnum;
-import ca.uhn.fhir.rest.client.api.ServerValidationModeEnum;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXBException;
+
 import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.CqlTranslatorException;
 import org.cqframework.cql.cql2elm.LibraryManager;
@@ -10,8 +25,8 @@ import org.cqframework.cql.cql2elm.ModelManager;
 import org.cqframework.cql.elm.execution.ExpressionDef;
 import org.cqframework.cql.elm.execution.FunctionDef;
 import org.cqframework.cql.elm.execution.Library;
+import org.cqframework.cql.elm.execution.ParameterDef;
 import org.cqframework.cql.elm.tracking.TrackBack;
-import org.hl7.fhir.instance.model.api.IAnyResource;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -22,24 +37,16 @@ import org.opencds.cqf.cql.data.fhir.FhirBundleCursorStu3;
 import org.opencds.cqf.cql.data.fhir.FhirDataProviderStu3;
 import org.opencds.cqf.cql.terminology.fhir.FhirTerminologyProvider;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXBException;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.rest.api.EncodingEnum;
+import ca.uhn.fhir.rest.client.api.ServerValidationModeEnum;
 
 /**
  * Created by Christopher on 1/13/2017.
  */
 @Path("evaluate")
 public class Executor {
-
+	
     private Map<String, List<Integer>> locations = new HashMap<>();
 
     // for future use
@@ -97,7 +104,7 @@ public class Executor {
 
         provider.setTerminologyProvider(terminologyProvider);
 //        provider.setSearchUsingPOST(true);
-//        provider.setExpandValueSets(true);
+        provider.setExpandValueSets(true);
         context.registerDataProvider("http://hl7.org/fhir", provider);
         context.registerTerminologyProvider(terminologyProvider);
         context.registerLibraryLoader(getLibraryLoader());
@@ -203,19 +210,29 @@ public class Executor {
         }
 
         String code = (String) json.get("code");
+        json.remove("code");
         String terminologyServiceUri = (String) json.get("terminologyServiceUri");
+        json.remove("terminologyServiceUri");
         String terminologyUser = (String) json.get("terminologyUser");
+        json.remove("terminologyUser");
         String terminologyPass = (String) json.get("terminologyPass");
+        json.remove("terminologyPass");
         String dataServiceUri = (String) json.get("dataServiceUri");
+        json.remove("dataServiceUri");
         String dataUser = (String) json.get("dataUser");
+        json.remove("dataUser");
         String dataPass = (String) json.get("dataPass");
+        json.remove("dataPass");
         String patientId = (String) json.get("patientId");
+        json.remove("patientId");
 
+        
         CqlTranslator translator;
         try {
             translator = getTranslator(code, getLibraryManager(), getModelManager());
         }
         catch (IllegalArgumentException iae) {
+        	iae.printStackTrace();
             JSONObject result = new JSONObject();
             JSONArray resultArr = new JSONArray();
             result.put("translation-error", iae.getMessage());
@@ -243,6 +260,13 @@ public class Executor {
         registerProviders(context, terminologyServiceUri, terminologyUser, terminologyPass, dataServiceUri, dataUser, dataPass);
 
         JSONArray resultArr = new JSONArray();
+        if(library.getParameters() != null) {
+	        for(ParameterDef def:library.getParameters().getDef()) {
+	        	if(context.resolveParameterRef(library.getLocalId(), def.getName()) != null) {
+	        		context.setParameter(library.getLocalId(), def.getName(), json.get(def.getName()));
+	        	}
+	        }
+        }
         for (ExpressionDef def : library.getStatements().getDef()) {
             context.enterContext(def.getContext());
             if (patientId != null && !patientId.isEmpty()) {
