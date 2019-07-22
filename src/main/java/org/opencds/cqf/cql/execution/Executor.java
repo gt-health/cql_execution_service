@@ -16,7 +16,6 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBException;
 
@@ -25,9 +24,6 @@ import org.cqframework.cql.cql2elm.CqlTranslatorException;
 import org.cqframework.cql.cql2elm.LibraryManager;
 import org.cqframework.cql.cql2elm.ModelManager;
 import org.cqframework.cql.elm.execution.Code;
-import org.cqframework.cql.elm.execution.CodeSystemDef;
-import org.cqframework.cql.elm.execution.CodeSystemRef;
-import org.cqframework.cql.elm.execution.Expression;
 import org.cqframework.cql.elm.execution.ExpressionDef;
 import org.cqframework.cql.elm.execution.FunctionDef;
 import org.cqframework.cql.elm.execution.Library;
@@ -39,8 +35,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.opencds.cqf.cql.data.fhir.BaseFhirDataProvider;
-import org.opencds.cqf.cql.data.fhir.FhirBundleCursorStu3;
-import org.opencds.cqf.cql.data.fhir.FhirDataProviderStu3;
+import org.opencds.cqf.cql.data.fhir.FhirBundleCursorDstu2;
+import org.opencds.cqf.cql.data.fhir.FhirDataProviderDstu2;
 import org.opencds.cqf.cql.elm.execution.CodeEvaluator;
 import org.opencds.cqf.cql.elm.execution.CodeSystemRefEvaluator;
 import org.opencds.cqf.cql.elm.execution.ConceptEvaluator;
@@ -49,26 +45,11 @@ import org.opencds.cqf.cql.util.LibraryUtil;
 import org.opencds.cqf.cql.util.service.BaseCodeMapperService;
 import org.opencds.cqf.cql.util.service.BaseCodeMapperService.CodeMapperIncorrectEquivalenceException;
 import org.opencds.cqf.cql.util.service.BaseCodeMapperService.CodeMapperNotFoundException;
-import org.opencds.cqf.cql.util.service.FhirCodeMapperServiceStu3;
+import org.opencds.cqf.cql.util.service.FhirCodeMapperServiceDstu2;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.EncodingEnum;
 import ca.uhn.fhir.rest.client.api.ServerValidationModeEnum;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXBException;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.api.EncodingEnum;
-import ca.uhn.fhir.rest.client.api.ServerValidationModeEnum;
-import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
 
 /**
  * Created by Christopher on 1/13/2017.
@@ -121,10 +102,10 @@ public class Executor {
     {
         // TODO: plugin authorization for data provider when available
 
-        String defaultEndpoint = "http://measure.eval.kanvix.com/cqf-ruler/baseDstu3";
+        String defaultEndpoint = "http://measure.eval.kanvix.com/cqf-ruler/baseDstu2";
 
         bearerToken = bearerToken.split("Bearer ")[1];
-        BaseFhirDataProvider provider = new FhirDataProviderStu3();
+        BaseFhirDataProvider provider = new FhirDataProviderDstu2();
         if(dataUser != null && !dataUser.isEmpty() && dataPass != null && !dataPass.isEmpty()) {
         	provider = provider.withBasicAuth(dataUser,dataPass);
         }
@@ -141,7 +122,7 @@ public class Executor {
                 .withBasicAuth(termUser, termPass)
                 .setEndpoint(termSvcUrl == null ? defaultEndpoint : termSvcUrl, false);
         
-        codeMapperService = (codeMapServiceUri != null && !codeMapServiceUri.isEmpty()) ? new FhirCodeMapperServiceStu3()
+        codeMapperService = (codeMapServiceUri != null && !codeMapServiceUri.isEmpty()) ? new FhirCodeMapperServiceDstu2()
         		.withBasicAuth(codeMapperUser,codeMapperPass)
         		.setEndpoint(codeMapServiceUri)
         		: null;
@@ -154,7 +135,7 @@ public class Executor {
     }
 
     private void performRetrieve(Iterable result, JSONObject results) {
-        FhirContext fhirContext = FhirContext.forDstu3(); // for JSON parsing
+        FhirContext fhirContext = FhirContext.forDstu2(); // for JSON parsing
         Iterator it = result.iterator();
         List<Object> findings = new ArrayList<>();
         while (it.hasNext()) {
@@ -376,7 +357,7 @@ public class Executor {
                 if (res == null) {
                     result.put("result", "Null");
                 }
-                else if (res instanceof FhirBundleCursorStu3) {
+                else if (res instanceof FhirBundleCursorDstu2) {
                     performRetrieve((Iterable) res, result);
                 }
                 else if (res instanceof List) {
@@ -388,7 +369,7 @@ public class Executor {
                     }
                 }
                 else if (res instanceof IBaseResource) {
-                    result.put("result", FhirContext.forDstu3().newJsonParser().setPrettyPrint(true).encodeResourceToString((IBaseResource) res));
+                    result.put("result", FhirContext.forDstu2().newJsonParser().setPrettyPrint(true).encodeResourceToString((IBaseResource) res));
                 }
                 else {
                     result.put("result", res.toString());
