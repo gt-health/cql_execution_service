@@ -22,12 +22,16 @@ CQL Formatter Service: http://cql.dataphoria.org/cql/format
     ```
     {
         "code": "Your CQL code",
-        "fhirServiceUri": "Terminology Service Endpoint",
-        "fhirUser": "Username for authentication",
-        "fhirPass": "Password for authentication",
+        "terminologyServiceUri": "Terminology Service Endpoint",
+        "terminologyUser": "Username for authentication",
+        "terminologyPass": "Password for authentication",
         "dataServiceUri": "Fhir Data Provider Endpoint",
         "dataUser": "Username for authentication",
         "dataPass": "Password for authentication",
+        "codeMapperServiceUri": "SystemMap Service Endpoint",
+        "codeMapperUser": "Username for authentication",
+        "codeMapperPass": "Password for authentication",
+        "codeMapperSystemsMap": "JSON Object mapping source codesystems to target local systems",
         "patientId": "The patient you want to run the library against"
     }
     ```
