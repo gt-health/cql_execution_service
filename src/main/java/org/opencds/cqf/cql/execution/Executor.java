@@ -123,12 +123,12 @@ public class Executor {
 
         String defaultEndpoint = "http://measure.eval.kanvix.com/cqf-ruler/baseDstu3";
 
-        bearerToken = bearerToken.split("Bearer ")[1];
         BaseFhirDataProvider provider = new FhirDataProviderStu3();
         if(dataUser != null && !dataUser.isEmpty() && dataPass != null && !dataPass.isEmpty()) {
         	provider = provider.withBasicAuth(dataUser,dataPass);
         }
         if(bearerToken != null && !bearerToken.isEmpty()) {
+        	bearerToken = bearerToken.split("Bearer ")[1];
         	provider = provider.withBearerAuth(bearerToken);
         }
         provider.setEndpoint(dataPvdrURL == null ? defaultEndpoint : dataPvdrURL);
