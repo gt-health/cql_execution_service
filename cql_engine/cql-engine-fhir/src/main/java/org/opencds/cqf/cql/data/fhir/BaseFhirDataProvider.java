@@ -3,6 +3,10 @@ package org.opencds.cqf.cql.data.fhir;
 import ca.uhn.fhir.context.*;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
+<<<<<<< HEAD
+=======
+import ca.uhn.fhir.rest.client.interceptor.BearerTokenAuthInterceptor;
+>>>>>>> 31cafd52c901ea70c64e92f928d738693888cd54
 
 import org.hl7.fhir.dstu3.model.Base;
 import org.hl7.fhir.dstu3.model.Quantity;
@@ -61,6 +65,11 @@ public abstract class BaseFhirDataProvider implements DataProvider {
             BasicAuthInterceptor basicAuth = new BasicAuthInterceptor(userName, password);
             fhirClient.registerInterceptor(basicAuth);
         }
+        
+        if(bearerToken != null) {
+        	BearerTokenAuthInterceptor bearerAuth = new BearerTokenAuthInterceptor(bearerToken);
+        	fhirClient.registerInterceptor(bearerAuth);
+        }
         return this;
     }
 
@@ -77,7 +86,11 @@ public abstract class BaseFhirDataProvider implements DataProvider {
         this.password = password;
         return this;
     }
-
+    
+    public BaseFhirDataProvider withBearerAuth(String bearerToken) {
+        this.bearerToken = bearerToken;
+        return this;
+    }
     public boolean isExpandValueSets() {
         return expandValueSets;
     }
@@ -116,6 +129,21 @@ public abstract class BaseFhirDataProvider implements DataProvider {
         this.password = password;
     }
 
+    private String password;
+    public String getPassword() {
+        return password;
+    }
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    private String bearerToken;
+    public String getBearerToken() {
+        return userName;
+    }
+    public void setBearerToken(String bearerToken) {
+        this.bearerToken = bearerToken;
+    }
     // Transformations
     protected DateTime toDateTime(Date result) {
         return DateTime.fromJavaDate(result);
