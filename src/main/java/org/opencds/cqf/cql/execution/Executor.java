@@ -104,7 +104,7 @@ public class Executor {
 
         String defaultEndpoint = "http://measure.eval.kanvix.com/cqf-ruler/baseDstu2";
 
-        BaseFhirDataProvider provider = new FhirDataProviderStu3();
+        BaseFhirDataProvider provider = new FhirDataProviderDstu2();
         if(dataUser != null && !dataUser.isEmpty() && dataPass != null && !dataPass.isEmpty()) {
         	provider = provider.withBasicAuth(dataUser,dataPass);
         }
