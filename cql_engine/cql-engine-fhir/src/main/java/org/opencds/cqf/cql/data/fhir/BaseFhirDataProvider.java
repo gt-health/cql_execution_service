@@ -3,10 +3,7 @@ package org.opencds.cqf.cql.data.fhir;
 import ca.uhn.fhir.context.*;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
-<<<<<<< HEAD
-=======
 import ca.uhn.fhir.rest.client.interceptor.BearerTokenAuthInterceptor;
->>>>>>> 31cafd52c901ea70c64e92f928d738693888cd54
 
 import org.hl7.fhir.dstu3.model.Base;
 import org.hl7.fhir.dstu3.model.Quantity;
@@ -18,8 +15,6 @@ import org.opencds.cqf.cql.runtime.DateTime;
 import org.opencds.cqf.cql.runtime.Interval;
 import org.opencds.cqf.cql.runtime.Precision;
 import org.opencds.cqf.cql.terminology.TerminologyProvider;
-import org.opencds.cqf.cql.terminology.fhir.FhirTerminologyProvider;
-
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -119,14 +114,6 @@ public abstract class BaseFhirDataProvider implements DataProvider {
     }
     public void setUserName(String userName) {
         this.userName = userName;
-    }
-
-    private String password;
-    public String getPassword() {
-        return password;
-    }
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     private String password;

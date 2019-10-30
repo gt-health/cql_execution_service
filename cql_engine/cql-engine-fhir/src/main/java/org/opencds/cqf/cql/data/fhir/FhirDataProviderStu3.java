@@ -78,17 +78,21 @@ public class FhirDataProviderStu3 extends BaseDataProviderStu3 {
             throw new IllegalArgumentException("A code path must be provided when filtering on codes or a valueset.");
         }
 
-        if (context != null && context.equals("Patient") && contextValue != null) {
+        if (context != null && context.equals("Patient") && contextValue != null && patientSearchableDataType(dataType)) {
             if (searchUsingPOST && search != null) {
-                search = search.where(new TokenClientParam(getPatientSearchParam(dataType)).exactly().identifier(contextValue.toString()));
+            	
+                search = search.where(new TokenClientParam(getPatientSearchParam(dataType)).exactly().identifier("Patient/"+contextValue.toString()));
                 doAnd = true;
             }
             else {
                 if (params.length() > 0) {
                     params.append("&");
                 }
-
-                params.append(String.format("%s=%s", getPatientSearchParam(dataType), URLEncode((String) contextValue)));
+                String referenceString = (String)contextValue;
+                if(!dataType.equalsIgnoreCase("Patient")) {
+                	referenceString = "Patient/"+ (String)contextValue;
+                }
+                params.append(String.format("%s=%s", getPatientSearchParam(dataType), URLEncode(referenceString)));
             }
         }
 
@@ -229,5 +233,14 @@ public class FhirDataProviderStu3 extends BaseDataProviderStu3 {
         }
 
         return super.resolveProperty(target, path);
+    }
+    
+    protected boolean patientSearchableDataType(String dataType) {
+    	switch(dataType) {
+    	case "Medication":
+    		return false;
+    	default:
+    		return true;
+    	}
     }
 }

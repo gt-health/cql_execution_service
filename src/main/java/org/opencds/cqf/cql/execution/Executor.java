@@ -125,7 +125,7 @@ public class Executor {
 
         String defaultEndpoint = "http://measure.eval.kanvix.com/cqf-ruler/baseDstu3";
 
-        BaseFhirDataProvider provider = fhirVersion.equalsIgnoreCase("DSTU2") ? new FhirDataProviderDstu2() : new FhirDataProviderStu3();
+        BaseFhirDataProvider provider = (fhirVersion != null && fhirVersion.equalsIgnoreCase("DSTU2")) ? new FhirDataProviderDstu2() : new FhirDataProviderStu3();
         if(dataUser != null && !dataUser.isEmpty() && dataPass != null && !dataPass.isEmpty()) {
         	provider = provider.withBasicAuth(dataUser,dataPass);
         }
@@ -156,7 +156,7 @@ public class Executor {
     }
 
     private void performRetrieve(String fhirVersion, Iterable result, JSONObject results) {
-        FhirContext fhirContext =  fhirVersion.equalsIgnoreCase("DSTU2") ? FhirContext.forDstu2() : FhirContext.forDstu3(); // for JSON parsing
+        FhirContext fhirContext = (fhirVersion != null && fhirVersion.equalsIgnoreCase("DSTU2")) ? FhirContext.forDstu2() : FhirContext.forDstu3(); // for JSON parsing
         Iterator it = result.iterator();
         List<Object> findings = new ArrayList<>();
         while (it.hasNext()) {
@@ -243,7 +243,7 @@ public class Executor {
 
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON + ";charset=utf-8"})
     public String evaluateCql(@HeaderParam("Authorization") String bearerToken, String requestData) throws JAXBException, IOException, ParseException {
 
         JSONParser parser = new JSONParser();
