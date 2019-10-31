@@ -2,28 +2,46 @@
 pipeline{
     agent any
 
-    //Define stages for the build process
-    stages{
-        //Define the deploy stage
-        stage('Deploy'){
-            steps{
-                script{
-                    docker.withRegistry('https://gt-build.hdap.gatech.edu'){
-                        //Build and push the database image
-                        def lmsImage = docker.build("cqlexecutionservice:1.0", "-f ./Dockerfile .")
-                        lmsImage.push('latest')
-                    }
-                }
-            }
-        }
+    environment {
+      GTRI_IMAGE_REGISTRY = credentials('gtri-image-registry')
+      GTRI_RANCHER_API_ENDPOINT = credentials('gtri-rancher-api-endpoint')
+      GTRI_HDAP_ENV_ID = credentials('hdap-aws-rancher-env')
+      CLARITYNLP_DOCKERHUB_CREDS = 'claritynlp-dockerhub'
+      paasImage = ''
+    }
 
-        //Define stage to notify rancher
-        stage('Notify'){
-            steps{
-                script{
-                    rancher confirm: true, credentialId: 'gt-rancher-server', endpoint: 'https://gt-rancher.hdap.gatech.edu/v2-beta', environmentId: '1a7', environments: '', image: 'gt-build.hdap.gatech.edu/cqlexecutionservice:latest', ports: '', service: 'PACER/cqlexecution', timeout: 60
-                }
-            }
+    stages{
+      stage('Building image') {
+        steps{
+          script {
+            paasImage = docker.build("claritynlp/cqlexecutionservice:1.0", ".")
+          }
         }
+      }
+      stage('Push image to private registry'){
+        steps{
+          script{
+            docker.withRegistry("https://${GTRI_IMAGE_REGISTRY}"){
+              paasImage.push("latest")
+            }
+          }
+        }
+      }
+      stage('Push image to public registry'){
+        steps{
+          script{
+            docker.withRegistry('', CLARITYNLP_DOCKERHUB_CREDS){
+              paasImage.push("latest")
+            }
+          }
+        }
+      }
+      stage('Notify orchestrator'){
+        steps{
+          script{
+            rancher confirm: true, credentialId: 'gt-rancher-server', endpoint: "${GTRI_RANCHER_API_ENDPOINT}", environmentId: "${GTRI_HDAP_ENV_ID}", environments: '', image: "${GTRI_IMAGE_REGISTRY}/claritynlp/cqlexecutionservice:latest", ports: '', service: 'CQL-Execution/cql-execution', timeout: 600
+          }
+        }
+      }
     }
 }
