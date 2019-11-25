@@ -89,11 +89,11 @@ public class FhirDataProviderStu3 extends BaseDataProviderStu3 {
                     params.append("&");
                 }
                 String referenceString = (String)contextValue;
-                String searchParamString = getPatientSearchParam(dataType)
-                if(!dataType.equalsIgnoreCase("Patient") && !searchParamString.equalsIgnoreCase("patient")) {
+                String patientSearchParam = getPatientSearchParam(dataType);
+                if(!dataType.equalsIgnoreCase("Patient") && !patientSearchParam.equalsIgnoreCase("patient")) {
                 	referenceString = "Patient/"+ (String)contextValue;
                 }
-                params.append(String.format("%s=%s", searchParamString, URLEncode(referenceString)));
+                params.append(String.format("%s=%s", getPatientSearchParam(dataType), URLEncode(referenceString)));
             }
         }
 
